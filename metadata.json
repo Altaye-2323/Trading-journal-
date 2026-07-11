@@ -1,0 +1,6 @@
+{
+  "name": "Forex Voice Trading Journal",
+  "description": "An intelligent, voice-powered trading journal that automates form population, tracks psychology, grades setups, and enforces strict morning and evening trading routines with discipline alarms.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
