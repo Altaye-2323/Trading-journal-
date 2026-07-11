@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { JournalEntry } from "../types";
 import { User, Mail, Calendar, Clock, DollarSign, Percent, TrendingUp, ShieldAlert, ArrowRight, Save, Clipboard } from "lucide-react";
+import VoiceDictateButton from "./VoiceDictateButton";
 
 interface TradingJournalFormProps {
   parsedData: any;
@@ -88,9 +89,16 @@ export default function TradingJournalForm({
           <div className="text-2xs font-mono text-emerald-400 uppercase tracking-widest">Trader Profile</div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1.5 flex items-center gap-1.5">
-                <User className="w-3.5 h-3.5 text-gray-400" /> Name
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-semibold text-gray-300 flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-gray-400" /> Name
+                </label>
+                <VoiceDictateButton
+                  fieldName="Name"
+                  fieldType="text"
+                  onDictate={(val) => setFormData(prev => ({ ...prev, name: val }))}
+                />
+              </div>
               <input
                 type="text"
                 name="name"
@@ -101,9 +109,16 @@ export default function TradingJournalForm({
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1.5 flex items-center gap-1.5">
-                <Mail className="w-3.5 h-3.5 text-gray-400" /> Email Address
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-semibold text-gray-300 flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-gray-400" /> Email Address
+                </label>
+                <VoiceDictateButton
+                  fieldName="Email Address"
+                  fieldType="text"
+                  onDictate={(val) => setFormData(prev => ({ ...prev, email: val }))}
+                />
+              </div>
               <input
                 type="email"
                 name="email"
@@ -147,9 +162,28 @@ export default function TradingJournalForm({
 
         {/* Asset Pair */}
         <div>
-          <label className="block text-xs font-semibold text-gray-300 mb-1.5 flex items-center gap-1.5">
-            <TrendingUp className="w-3.5 h-3.5 text-gray-400" /> Asset Symbol / Pair
-          </label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-xs font-semibold text-gray-300 flex items-center gap-1.5">
+              <TrendingUp className="w-3.5 h-3.5 text-gray-400" /> Asset Symbol / Pair
+            </label>
+            <VoiceDictateButton
+              fieldName="Asset Symbol / Pair"
+              fieldType="select"
+              selectOptions={[
+                { value: "EURUSD", label: "EURUSD" },
+                { value: "GBPJPY", label: "GBPJPY" },
+                { value: "XAUUSD", label: "XAUUSD" },
+                { value: "GBPUSD", label: "GBPUSD" },
+                { value: "AUDUSD", label: "AUDUSD" },
+                { value: "USDJPY", label: "USDJPY" },
+                { value: "BTCUSD", label: "BTCUSD" }
+              ]}
+              onDictate={(val) => {
+                const upper = val.toUpperCase().replace(/[^A-Z]/g, "");
+                setFormData(prev => ({ ...prev, assetPair: upper || prev.assetPair }));
+              }}
+            />
+          </div>
           <select
             name="assetPair"
             value={formData.assetPair}
@@ -168,9 +202,16 @@ export default function TradingJournalForm({
 
         {/* Position Size (Lots) */}
         <div>
-          <label className="block text-xs font-semibold text-gray-300 mb-1.5 flex items-center gap-1.5">
-            <DollarSign className="w-3.5 h-3.5 text-gray-400" /> Lot Size (Volume)
-          </label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-xs font-semibold text-gray-300 flex items-center gap-1.5">
+              <DollarSign className="w-3.5 h-3.5 text-gray-400" /> Lot Size (Volume)
+            </label>
+            <VoiceDictateButton
+              fieldName="Lot Size (Volume)"
+              fieldType="number"
+              onDictate={(val) => setFormData(prev => ({ ...prev, positionSize: parseFloat(val) || prev.positionSize }))}
+            />
+          </div>
           <input
             type="number"
             step="0.01"
@@ -185,9 +226,16 @@ export default function TradingJournalForm({
 
         {/* Capital Risked */}
         <div>
-          <label className="block text-xs font-semibold text-gray-300 mb-1.5 flex items-center gap-1.5">
-            <Percent className="w-3.5 h-3.5 text-gray-400" /> Risk Exposure (% of Capital)
-          </label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-xs font-semibold text-gray-300 flex items-center gap-1.5">
+              <Percent className="w-3.5 h-3.5 text-gray-400" /> Risk Exposure (% of Capital)
+            </label>
+            <VoiceDictateButton
+              fieldName="Risk Exposure"
+              fieldType="number"
+              onDictate={(val) => setFormData(prev => ({ ...prev, capitalRisked: parseFloat(val) || prev.capitalRisked }))}
+            />
+          </div>
           <input
             type="number"
             step="0.1"
@@ -203,9 +251,16 @@ export default function TradingJournalForm({
 
         {/* BE status */}
         <div>
-          <label className="block text-xs font-semibold text-gray-300 mb-1.5 flex items-center gap-1.5">
-            <ShieldAlert className="w-3.5 h-3.5 text-gray-400" /> Break Even Active?
-          </label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-xs font-semibold text-gray-300 flex items-center gap-1.5">
+              <ShieldAlert className="w-3.5 h-3.5 text-gray-400" /> Break Even Active?
+            </label>
+            <VoiceDictateButton
+              fieldName="Break Even Active?"
+              fieldType="checkbox"
+              onDictate={(val) => setFormData(prev => ({ ...prev, beStatus: val === "true" ? "YES" : "NO" }))}
+            />
+          </div>
           <select
             name="beStatus"
             value={formData.beStatus}
@@ -219,9 +274,16 @@ export default function TradingJournalForm({
 
         {/* Stop Loss & Take Profit */}
         <div>
-          <label className="block text-xs font-semibold text-gray-300 mb-1.5 flex items-center gap-1.5">
-            Stop Loss (SL)
-          </label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-xs font-semibold text-gray-300 flex items-center gap-1.5">
+              Stop Loss (SL)
+            </label>
+            <VoiceDictateButton
+              fieldName="Stop Loss"
+              fieldType="text"
+              onDictate={(val) => setFormData(prev => ({ ...prev, stopLoss: val }))}
+            />
+          </div>
           <input
             type="text"
             name="stopLoss"
@@ -234,9 +296,16 @@ export default function TradingJournalForm({
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-gray-300 mb-1.5 flex items-center gap-1.5">
-            Take Profit (TP)
-          </label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-xs font-semibold text-gray-300 flex items-center gap-1.5">
+              Take Profit (TP)
+            </label>
+            <VoiceDictateButton
+              fieldName="Take Profit"
+              fieldType="text"
+              onDictate={(val) => setFormData(prev => ({ ...prev, takeProfit: val }))}
+            />
+          </div>
           <input
             type="text"
             name="takeProfit"

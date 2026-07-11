@@ -1,5 +1,6 @@
 import React from "react";
 import { Brain, Sparkles, Smile, ShieldAlert, Heart, Frown, Check, AlertTriangle } from "lucide-react";
+import VoiceDictateButton from "./VoiceDictateButton";
 
 interface PsychologySectionProps {
   fomoScore: number;
@@ -287,10 +288,17 @@ export default function PsychologySection({
                 {/* Mandatory Warning TextArea when rule is broken */}
                 {!isRespected && (
                   <div className="mt-3.5 pt-3 border-t border-rose-950/50">
-                    <label className="block text-[11px] font-semibold text-rose-300 mb-1.5 flex items-center gap-1">
-                      <AlertTriangle className="w-3.5 h-3.5 text-rose-400 animate-pulse" />
-                      Mandatory Violation Log - Explain Why You Broke This Rule:
-                    </label>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-[11px] font-semibold text-rose-300 flex items-center gap-1">
+                        <AlertTriangle className="w-3.5 h-3.5 text-rose-400 animate-pulse" />
+                        Mandatory Violation Log - Explain Why You Broke This Rule:
+                      </label>
+                      <VoiceDictateButton
+                        fieldName={`Commandment: ${rule.label}`}
+                        fieldType="textarea"
+                        onDictate={(val) => handleReasonChange(rule.key, val)}
+                      />
+                    </div>
                     <textarea
                       value={brokenRulesReasons[rule.key] || ""}
                       onChange={(e) => handleReasonChange(rule.key, e.target.value)}

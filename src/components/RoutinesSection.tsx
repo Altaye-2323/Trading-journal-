@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { RoutineStatus } from "../types";
 import { ListChecks, Sun, Moon, Clock, Save, Info, AlertTriangle, ShieldCheck, Zap } from "lucide-react";
+import VoiceDictateButton from "./VoiceDictateButton";
 
 interface RoutinesSectionProps {
   routineState: RoutineStatus;
@@ -230,28 +231,51 @@ export default function RoutinesSection({
             {MORNING_ITEMS.map((item) => {
               const isChecked = routineState.morningItems[item.key];
               return (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => handleToggleMorning(item.key)}
-                  className={`w-full text-left p-3 rounded-lg border flex items-start gap-3 transition-all cursor-pointer ${
-                    isChecked 
-                      ? "bg-emerald-950/10 border-emerald-500/30 text-slate-200" 
-                      : "bg-[#0d1222] border-slate-800 hover:border-slate-700 text-slate-400"
-                  }`}
-                >
-                  <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                    isChecked ? "bg-emerald-500 border-emerald-500 text-black" : "border-gray-500"
-                  }`}>
-                    {isChecked && <span className="text-3xs font-extrabold font-sans">✓</span>}
+                <div key={item.key} className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleToggleMorning(item.key)}
+                    className={`flex-grow text-left p-3 rounded-lg border flex items-start gap-3 transition-all cursor-pointer ${
+                      isChecked 
+                        ? "bg-emerald-950/10 border-emerald-500/30 text-slate-200" 
+                        : "bg-[#0d1222] border-slate-800 hover:border-slate-700 text-slate-400"
+                    }`}
+                  >
+                    <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center transition-colors flex-shrink-0 ${
+                      isChecked ? "bg-emerald-500 border-emerald-500 text-black" : "border-gray-500"
+                    }`}>
+                      {isChecked && <span className="text-3xs font-extrabold font-sans">✓</span>}
+                    </div>
+                    <div>
+                      <span className={`text-xs font-semibold block ${isChecked ? "text-emerald-300" : "text-gray-200"}`}>
+                        {item.label}
+                      </span>
+                      <span className="text-gray-400 text-3xs mt-0.5 block leading-relaxed">{item.desc}</span>
+                    </div>
+                  </button>
+                  <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0">
+                    <VoiceDictateButton
+                      fieldName={`Morning: ${item.label}`}
+                      fieldType="checkbox"
+                      onDictate={(val) => {
+                        setRoutineState((prev) => {
+                          const updatedItems = {
+                            ...prev.morningItems,
+                            [item.key]: val === "true"
+                          };
+                          const allDone = Object.values(updatedItems).every(Boolean);
+                          return {
+                            ...prev,
+                            morningItems: updatedItems,
+                            morningCompleted: allDone,
+                            morningCompletedAt: allDone ? new Date().toISOString() : undefined
+                          };
+                        });
+                      }}
+                      className="h-[52px] w-[38px] flex items-center justify-center bg-[#0d1222] border-slate-800"
+                    />
                   </div>
-                  <div>
-                    <span className={`text-xs font-semibold block ${isChecked ? "text-emerald-300" : "text-gray-200"}`}>
-                      {item.label}
-                    </span>
-                    <span className="text-gray-400 text-3xs mt-0.5 block leading-relaxed">{item.desc}</span>
-                  </div>
-                </button>
+                </div>
               );
             })}
           </div>
@@ -277,28 +301,51 @@ export default function RoutinesSection({
             {EVENING_ITEMS.map((item) => {
               const isChecked = routineState.eveningItems[item.key];
               return (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => handleToggleEvening(item.key)}
-                  className={`w-full text-left p-3 rounded-lg border flex items-start gap-3 transition-all cursor-pointer ${
-                    isChecked 
-                      ? "bg-emerald-950/10 border-emerald-500/30 text-slate-200" 
-                      : "bg-[#0d1222] border-slate-800 hover:border-slate-700 text-slate-400"
-                  }`}
-                >
-                  <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                    isChecked ? "bg-emerald-500 border-emerald-500 text-black" : "border-gray-500"
-                  }`}>
-                    {isChecked && <span className="text-3xs font-extrabold font-sans">✓</span>}
+                <div key={item.key} className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleToggleEvening(item.key)}
+                    className={`flex-grow text-left p-3 rounded-lg border flex items-start gap-3 transition-all cursor-pointer ${
+                      isChecked 
+                        ? "bg-emerald-950/10 border-emerald-500/30 text-slate-200" 
+                        : "bg-[#0d1222] border-slate-800 hover:border-slate-700 text-slate-400"
+                    }`}
+                  >
+                    <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center transition-colors flex-shrink-0 ${
+                      isChecked ? "bg-emerald-500 border-emerald-500 text-black" : "border-gray-500"
+                    }`}>
+                      {isChecked && <span className="text-3xs font-extrabold font-sans">✓</span>}
+                    </div>
+                    <div>
+                      <span className={`text-xs font-semibold block ${isChecked ? "text-emerald-300" : "text-gray-200"}`}>
+                        {item.label}
+                      </span>
+                      <span className="text-gray-400 text-3xs mt-0.5 block leading-relaxed">{item.desc}</span>
+                    </div>
+                  </button>
+                  <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0">
+                    <VoiceDictateButton
+                      fieldName={`Evening: ${item.label}`}
+                      fieldType="checkbox"
+                      onDictate={(val) => {
+                        setRoutineState((prev) => {
+                          const updatedItems = {
+                            ...prev.eveningItems,
+                            [item.key]: val === "true"
+                          };
+                          const allDone = Object.values(updatedItems).every(Boolean);
+                          return {
+                            ...prev,
+                            eveningItems: updatedItems,
+                            eveningCompleted: allDone,
+                            eveningCompletedAt: allDone ? new Date().toISOString() : undefined
+                          };
+                        });
+                      }}
+                      className="h-[52px] w-[38px] flex items-center justify-center bg-[#0d1222] border-slate-800"
+                    />
                   </div>
-                  <div>
-                    <span className={`text-xs font-semibold block ${isChecked ? "text-emerald-300" : "text-gray-200"}`}>
-                      {item.label}
-                    </span>
-                    <span className="text-gray-400 text-3xs mt-0.5 block leading-relaxed">{item.desc}</span>
-                  </div>
-                </button>
+                </div>
               );
             })}
           </div>

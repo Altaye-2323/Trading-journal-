@@ -1,5 +1,6 @@
 import React from "react";
 import { CheckSquare, Square, Award, AlertTriangle, HelpCircle, CheckCircle2 } from "lucide-react";
+import VoiceDictateButton from "./VoiceDictateButton";
 
 interface SetupGradingProps {
   preTradeChecklist: {
@@ -131,30 +132,44 @@ export default function SetupGrading({ preTradeChecklist, setPreTradeChecklist }
         {CHECKLIST_ITEMS.map((item) => {
           const isChecked = preTradeChecklist[item.key];
           return (
-            <button
-              key={item.key}
-              type="button"
-              onClick={() => handleToggle(item.key)}
-              className={`w-full text-left p-3.5 rounded-lg border transition-all duration-150 flex items-start gap-3 cursor-pointer ${
-                isChecked
-                  ? "bg-[#10b981]/5 border-emerald-500/40 hover:border-emerald-500/60"
-                  : "bg-[#0d1222] border-[#1f2937] hover:border-slate-700"
-              }`}
-            >
-              <div className="mt-0.5 flex-shrink-0">
-                {isChecked ? (
-                  <CheckSquare className="w-4 h-4 text-emerald-400" />
-                ) : (
-                  <Square className="w-4 h-4 text-gray-500" />
-                )}
+            <div key={item.key} className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleToggle(item.key)}
+                className={`flex-grow text-left p-3.5 rounded-lg border transition-all duration-150 flex items-start gap-3 cursor-pointer ${
+                  isChecked
+                    ? "bg-[#10b981]/5 border-emerald-500/40 hover:border-emerald-500/60"
+                    : "bg-[#0d1222] border-[#1f2937] hover:border-slate-700"
+                }`}
+              >
+                <div className="mt-0.5 flex-shrink-0">
+                  {isChecked ? (
+                    <CheckSquare className="w-4 h-4 text-emerald-400" />
+                  ) : (
+                    <Square className="w-4 h-4 text-gray-500" />
+                  )}
+                </div>
+                <div>
+                  <span className={`text-xs font-semibold block transition-colors ${isChecked ? "text-emerald-300" : "text-gray-200"}`}>
+                    {item.label}
+                  </span>
+                  <span className="text-gray-400 text-2xs mt-0.5 block leading-relaxed">{item.desc}</span>
+                </div>
+              </button>
+              <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0">
+                <VoiceDictateButton
+                  fieldName={`Checklist: ${item.label}`}
+                  fieldType="checkbox"
+                  onDictate={(val) => {
+                    setPreTradeChecklist(prev => ({
+                      ...prev,
+                      [item.key]: val === "true"
+                    }));
+                  }}
+                  className="h-[56px] w-[42px] flex items-center justify-center bg-[#0d1222] border-[#1f2937]"
+                />
               </div>
-              <div>
-                <span className={`text-xs font-semibold block transition-colors ${isChecked ? "text-emerald-300" : "text-gray-200"}`}>
-                  {item.label}
-                </span>
-                <span className="text-gray-400 text-2xs mt-0.5 block leading-relaxed">{item.desc}</span>
-              </div>
-            </button>
+            </div>
           );
         })}
       </div>
