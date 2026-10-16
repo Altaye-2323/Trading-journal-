@@ -8,6 +8,10 @@ import PenaltyAlarm from "./components/PenaltyAlarm";
 import EntriesHistory from "./components/EntriesHistory";
 import { JournalEntry, RoutineStatus, Statistics } from "./types";
 import { BookOpen, Compass, Shield, Activity, Calendar, Clock, AlertTriangle, ShieldCheck } from "lucide-react";
+import GoogleFormsSync from "./components/GoogleFormsSync";
+import GoogleFormEmbedView from "./components/GoogleFormEmbedView";
+import { CreatedGoogleFormInfo, createTradingJournalGoogleForm } from "./services/googleForms";
+import { getAccessToken, googleSignIn } from "./services/googleAuth";
 
 export default function App() {
   // Voice parsing and form populate state
@@ -93,6 +97,80 @@ export default function App() {
 
   // Notification Banner State
   const [banner, setBanner] = useState<{ text: string; type: "success" | "error" | "info" } | null>(null);
+
+  // Google Forms Integration State
+  const [activeForm, setActiveForm] = useState<CreatedGoogleFormInfo | null>(() => {
+    const saved = localStorage.getItem("forex_google_form_info");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  });
+  const [viewMode, setViewMode] = useState<"app" | "google-form">("google-form");
+  const [isCreatingFormGlobal, setIsCreatingFormGlobal] = useState(false);
+
+  const handleGenerateFormGlobal = async () => {
+    let token = await getAccessToken();
+    if (!token) {
+      try {
+        const res = await googleSignIn();
+        token = res.accessToken;
+      } catch (err: any) {
+        showBanner(err.message || "Please sign in with Google to create the form.", "error");
+        return;
+      }
+    }
+
+    setIsCreatingFormGlobal(true);
+    try {
+      const formInfo = await createTradingJournalGoogleForm(token);
+      setActiveForm(formInfo);
+      localStorage.setItem("forex_google_form_info", JSON.stringify(formInfo));
+      showBanner("🎉 Google Form journal successfully generated in your Google Drive!", "success");
+      setViewMode("google-form");
+    } catch (err: any) {
+      console.error(err);
+      showBanner(err.message || "Failed to create Google Form.", "error");
+    } finally {
+      setIsCreatingFormGlobal(false);
+    }
+  };
+
+  const handleLinkCustomForm = (url: string) => {
+    let responderUri = url.trim();
+    let editUri = "";
+    if (responderUri.includes("/edit")) {
+      editUri = responderUri;
+      responderUri = responderUri.replace("/edit", "/viewform");
+    } else {
+      editUri = responderUri.replace("/viewform", "/edit");
+    }
+
+    const formInfo: CreatedGoogleFormInfo = {
+      formId: "custom-" + Date.now(),
+      title: "Forex Trading Discipline Journal",
+      responderUri,
+      editUri,
+      createdAt: new Date().toISOString(),
+    };
+
+    setActiveForm(formInfo);
+    localStorage.setItem("forex_google_form_info", JSON.stringify(formInfo));
+    showBanner("Google Form link connected and loaded successfully!", "success");
+    setViewMode("google-form");
+  };
+
+  const handleResetForm = () => {
+    if (confirm("Disconnect current Google Form link? You can reconnect or generate a new one anytime.")) {
+      setActiveForm(null);
+      localStorage.removeItem("forex_google_form_info");
+      showBanner("Google Form disconnected.", "info");
+    }
+  };
 
   // Load ledger on mount
   useEffect(() => {
@@ -328,64 +406,87 @@ export default function App() {
       {/* Main Dashboard Layout Container */}
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-6 space-y-6 w-full flex-grow">
         
-        {/* Top Layout Grid: Left column (speech and checklists), Right column (saving log) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
-          {/* Column A: Voice and Checklist scoring */}
-          <div className="space-y-6">
-            <VoiceInput
-              onParsed={handleVoiceParsed}
-              isLoading={isLoading}
-              setIsLoading={setIsLoading}
-            />
+        {/* Google Forms Integration Hub */}
+        <GoogleFormsSync
+          activeForm={activeForm}
+          setActiveForm={setActiveForm}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          onFormCreated={(form) => {
+            setActiveForm(form);
+            showBanner("Google Form created! You can now use your journal in Google Forms.", "success");
+          }}
+        />
 
-            <SetupGrading
-              preTradeChecklist={preTradeChecklist}
-              setPreTradeChecklist={setPreTradeChecklist}
-            />
+        {/* View Toggle: Google Forms View vs Web Terminal View */}
+        {viewMode === "google-form" ? (
+          <GoogleFormEmbedView
+            activeForm={activeForm}
+            onCreateFormClick={handleGenerateFormGlobal}
+            isCreatingForm={isCreatingFormGlobal}
+            onLinkCustomForm={handleLinkCustomForm}
+            onResetForm={handleResetForm}
+          />
+        ) : (
+          /* Web Terminal Layout Grid: Left column (speech and checklists), Right column (saving log) */
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            {/* Column A: Voice and Checklist scoring */}
+            <div className="space-y-6">
+              <VoiceInput
+                onParsed={handleVoiceParsed}
+                isLoading={isLoading}
+                setIsLoading={setIsLoading}
+              />
 
-            <PsychologySection
-              fomoScore={fomoScore}
-              setFomoScore={setFomoScore}
-              fearScore={fearScore}
-              setFearScore={setFearScore}
-              sleepQuality={sleepQuality}
-              setSleepQuality={setSleepQuality}
-              fatigueLevel={fatigueLevel}
-              setFatigueLevel={setFatigueLevel}
-              rulesStatus={rulesStatus}
-              setRulesStatus={setRulesStatus}
-              brokenRulesReasons={brokenRulesReasons}
-              setBrokenRulesReasons={setBrokenRulesReasons}
-            />
+              <SetupGrading
+                preTradeChecklist={preTradeChecklist}
+                setPreTradeChecklist={setPreTradeChecklist}
+              />
+
+              <PsychologySection
+                fomoScore={fomoScore}
+                setFomoScore={setFomoScore}
+                fearScore={fearScore}
+                setFearScore={setFearScore}
+                sleepQuality={sleepQuality}
+                setSleepQuality={setSleepQuality}
+                fatigueLevel={fatigueLevel}
+                setFatigueLevel={setFatigueLevel}
+                rulesStatus={rulesStatus}
+                setRulesStatus={setRulesStatus}
+                brokenRulesReasons={brokenRulesReasons}
+                setBrokenRulesReasons={setBrokenRulesReasons}
+              />
+            </div>
+
+            {/* Column B: Active trading form & routines logs */}
+            <div className="space-y-6">
+              <TradingJournalForm
+                parsedData={parsedData}
+                onSave={handleSaveJournal}
+                isSaving={isSaving}
+                preTradeChecklist={preTradeChecklist}
+                setupGrade={calculatedGrade}
+                rulesStatus={rulesStatus}
+                brokenRulesReasons={brokenRulesReasons}
+              />
+
+              <RoutinesSection
+                routineState={routineState}
+                setRoutineState={setRoutineState}
+                onSaveRoutine={handleSaveRoutines}
+                simHour={simHour}
+                simMin={simMin}
+                useSimTime={useSimTime}
+                setSimHour={setSimHour}
+                setSimMin={setSimMin}
+                setUseSimTime={setUseSimTime}
+                onTriggerAlarm={setActiveAlarmMessage}
+              />
+            </div>
           </div>
-
-          {/* Column B: Active trading form & routines logs */}
-          <div className="space-y-6">
-            <TradingJournalForm
-              parsedData={parsedData}
-              onSave={handleSaveJournal}
-              isSaving={isSaving}
-              preTradeChecklist={preTradeChecklist}
-              setupGrade={calculatedGrade}
-              rulesStatus={rulesStatus}
-              brokenRulesReasons={brokenRulesReasons}
-            />
-
-            <RoutinesSection
-              routineState={routineState}
-              setRoutineState={setRoutineState}
-              onSaveRoutine={handleSaveRoutines}
-              simHour={simHour}
-              simMin={simMin}
-              useSimTime={useSimTime}
-              setSimHour={setSimHour}
-              setSimMin={setSimMin}
-              setUseSimTime={setUseSimTime}
-              onTriggerAlarm={setActiveAlarmMessage}
-            />
-          </div>
-        </div>
+        )}
 
         {/* Ledger & Statistics Segment */}
         <div className="border-t border-[#1f2937] pt-6">
